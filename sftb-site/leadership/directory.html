@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Members Directory — SFTB Leadership</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <!-- Global styles & scripts -->
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <script src="../assets/js/main.js" defer></script>
+    <script src="../assets/js/api.js" defer></script>
+    <script src="../assets/js/auth.js" defer></script>
+    <style>
+        /* ===== LAYOUT ===== */
+        body {
+            background: var(--deep-sky);
+            min-height: 100vh;
+            padding: 0 6vw 40px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Simple header (no sidebar, just nav) */
+        .top-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--card-border, rgba(243, 234, 216, 0.06));
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .top-nav .brand {
+            font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+            font-weight: 800;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--star, #f3ead8);
+        }
+        .top-nav .brand .mark {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, var(--ember-bright), var(--ember) 60%, transparent);
+            box-shadow: 0 0 12px var(--ember);
+        }
+        .top-nav .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .top-nav .nav-links a {
+            color: var(--star-dim, #b9ae9a);
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+        .top-nav .nav-links a:hover {
+            color: var(--gold, #e0b355);
+        }
+        .top-nav .nav-links a.current {
+            color: var(--gold, #e0b355);
+            border-bottom: 1px solid var(--gold);
+            padding-bottom: 4px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+        .page-header h1 {
+            font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .page-header .sub {
+            color: var(--star-dim, #b9ae9a);
+            font-size: 0.9rem;
+        }
+        .page-header .counter {
+            color: var(--star-dim, #b9ae9a);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        /* Filters bar */
+        .filters-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--card-border, rgba(243, 234, 216, 0.06));
+        }
+        .filters-bar .search-wrap {
+            flex: 1 1 200px;
+            min-width: 140px;
+            position: relative;
+        }
+        .filters-bar .search-wrap input {
+            width: 100%;
+            padding: 8px 14px 8px 34px;
+            background: rgba(10, 6, 22, 0.45);
+            border: 1px solid var(--card-border, rgba(243, 234, 216, 0.12));
+            border-radius: 8px;
+            color: var(--star, #f3ead8);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .filters-bar .search-wrap input:focus {
+            border-color: var(--card-border-focus, rgba(224, 179, 85, 0.4));
+        }
+        .filters-bar .search-wrap::before {
+            content: '🔍';
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+            opacity: 0.5;
+        }
+
+        .filters-bar select,
+        .filters-bar .filter-group select {
+            padding: 8px 30px 8px 12px;
+            background: rgba(10, 6, 22, 0.45);
+            border: 1px solid var(--card-border, rgba(243, 234, 216, 0.12));
+            border-radius: 8px;
+            color: var(--star, #f3ead8);
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b9ae9a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            min-width: 120px;
+        }
+        .filters-bar select:focus {
+            border-color: var(--card-border-focus, rgba(224, 179, 85, 0.4));
+        }
+
+        .filters-bar .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .filters-bar .filter-group label {
+            font-size: 0.75rem;
+            color: var(--star-dim, #b9ae9a);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* Sort buttons */
+        .sort-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        .sort-row .sort-label {
+            font-size: 0.75rem;
+            color: var(--star-dim, #b9ae9a);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-right: 4px;
+        }
+        .sort-row button {
+            padding: 6px 14px;
+            background: rgba(10, 6, 22, 0.35);
+            border: 1px solid var(--card-border, rgba(243, 234, 216, 0.10));
+            border-radius: 6px;
+            color: var(--star-dim, #b9ae9a);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: var(--font-body, 'Inter', sans-serif);
+        }
+        .sort-row button:hover {
+            border-color: var(--gold, #e0b355);
+            color: var(--star, #f3ead8);
+        }
+        .sort-row button.active {
+            border-color: var(--gold, #e0b355);
+            color: var(--gold, #e0b355);
+            background: rgba(224, 179, 85, 0.08);
+        }
+
+        /* Table (desktop) */
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid var(--card-border, rgba(243, 234, 216, 0.06));
+            background: var(--card-bg, rgba(10, 6, 22, 0.35));
+            backdrop-filter: blur(4px);
+            margin-bottom: 20px;
+        }
+        .directory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 900px;
+        }
+        .directory-table thead {
+            background: rgba(10, 6, 22, 0.50);
+            border-bottom: 1px solid var(--card-border, rgba(243, 234, 216, 0.06));
+        }
+        .directory-table th {
+            text-align: left;
+            padding: 12px 14px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--star-dim, #b9ae9a);
+            cursor: pointer;
+            user-select: none;
+            position: sticky;
+            top: 0;
+            background: rgba(12, 8, 32, 0.9);
+            z-index: 2;
+        }
+        .directory-table th:hover {
+            color: var(--star, #f3ead8);
+        }
+        .directory-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--card-border, rgba(243, 234, 216, 0.04));
+            vertical-align: middle;
+        }
+        .directory-table tbody tr {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .directory-table tbody tr:hover {
+            background: rgba(224, 179, 85, 0.04);
+        }
+        .directory-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .directory-table .role-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .role-badge.leader { background: rgba(224, 179, 85, 0.20); color: #e0b355; border: 1px solid rgba(224, 179, 85, 0.25); }
+        .role-badge.general { background: rgba(217, 104, 46, 0.20); color: #ff9452; border: 1px solid rgba(217, 104, 46, 0.25); }
+        .role-badge.officer { background: rgba(74, 175, 176, 0.20); color: #4aafb0; border: 1px solid rgba(74, 175, 176, 0.25); }
+        .role-badge.member { background: rgba(138, 155, 168, 0.15); color: #8a9ba8; border: 1px solid rgba(138, 155, 168, 0.15); }
+
+        .mf-badge {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .mf-badge.yes { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2); }
+        .mf-badge.no { background: rgba(239, 68, 68, 0.10); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.1); }
+
+        /* Notes tooltip */
+        .note-trigger {
+            color: var(--star-dim, #b9ae9a);
+            cursor: help;
+            font-size: 0.8rem;
+            border-bottom: 1px dashed rgba(243, 234, 216, 0.2);
+        }
+        .note-trigger:hover {
+            color: var(--gold, #e0b355);
+        }
+
+        /* Mobile cards */
+        .member-cards {
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .member-card {
+            background: var(--card-bg, rgba(10, 6, 22, 0.50));
+            border: 1px solid var(--card-border, rgba(243, 234, 216, 0.06));
+            border-radius: 12px;
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .member-card:hover {
+            background: rgba(224, 179, 85, 0.04);
+        }
+        .member-card .card-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .member-card .card-row .name {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+        .member-card .card-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 16px;
+            font-size: 0.85rem;
+            color: var(--star-dim, #b9ae9a);
+            margin: 6px 0;
+        }
+        .member-card .card-meta .label {
+            color: var(--star-dimmer, #6a5f4e);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .member-card .card-notes {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--star-dim, #b9ae9a);
+            padding: 8px 12px;
+            background: rgba(10, 6, 22, 0.3);
+            border-radius: 6px;
+            border-left: 2px solid var(--gold, #e0b355);
+            display: none;
+        }
+        .member-card .card-notes.visible {
+            display: block;
+        }
+        .member-card .card-toggle {
+            color: var(--star-dim, #b9ae9a);
+            font-size: 0.7rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-family: var(--font-body, 'Inter', sans-serif);
+            padding: 4px 0;
+        }
+        .member-card .card-toggle:hover {
+            color: var(--gold, #e0b355);
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding: 16px 0;
+        }
+        .pagination button {
+            padding: 8px 16px;
+            background: rgba(10, 6, 22, 0.45);
+            border: 1px solid var(--card-border, rgba(243, 234, 216, 0.10));
+            border-radius: 6px;
+            color: var(--star-dim, #b9ae9a);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: var(--font-body, 'Inter', sans-serif);
+        }
+        .pagination button:hover:not(:disabled) {
+            border-color: var(--gold, #e0b355);
+            color: var(--star, #f3ead8);
+        }
+        .pagination button.active {
+            background: rgba(224, 179, 85, 0.15);
+            border-color: var(--gold, #e0b355);
+            color: var(--gold, #e0b355);
+        }
+        .pagination button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Loading / empty */
+        .loading-state, .empty-state, .error-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--star-dim, #b9ae9a);
+        }
+        .loading-state .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 2px solid rgba(243, 234, 216, 0.10);
+            border-top-color: var(--gold, #e0b355);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-state p { margin-top: 12px; }
+
+        /* Responsive */
+        @media (max-width: 820px) {
+            .table-wrap { display: none; }
+            .member-cards { display: flex; }
+            .filters-bar { flex-direction: column; align-items: stretch; }
+            .filters-bar .filter-group { flex-wrap: wrap; }
+            .filters-bar select { min-width: 100%; }
+            .top-nav .nav-links { gap: 12px; }
+            .top-nav .nav-links a { font-size: 0.75rem; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 0 4vw 30px; }
+            .page-header h1 { font-size: 1.4rem; }
+            .member-card .card-meta { grid-template-columns: 1fr; }
+            .sort-row button { font-size: 0.7rem; padding: 4px 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== TOP NAV ===== -->
+    <header class="top-nav">
+        <div class="brand">
+            <span class="mark"></span>
+            <span>SFTB · Leadership</span>
+        </div>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="directory.html" class="current">Directory</a>
+            <a href="roster.html">Roster</a>
+            <a href="../login.html">Logout</a>
+        </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <main>
+
+        <!-- Page header -->
+        <div class="page-header">
+            <h1>Members Directory</h1>
+            <div class="sub">Full member database with advanced filtering.</div>
+            <div class="counter" id="counter">Showing 0 of 0 members</div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar" id="filtersBar">
+            <div class="search-wrap">
+                <input type="text" id="searchInput" placeholder="Search by name or Discord..." />
+            </div>
+
+            <select id="roleFilter">
+                <option value="">All Roles</option>
+                <option value="Leader">Leader</option>
+                <option value="General">General</option>
+                <option value="Officer">Officer</option>
+                <option value="Member">Member</option>
+            </select>
+
+            <select id="combatFilter">
+                <option value="">All Combat Skills</option>
+            </select>
+
+            <select id="nonCombatFilter" multiple size="1" style="min-width:140px;">
+                <option value="">All Non-Combat</option>
+            </select>
+
+            <div class="filter-group">
+                <label>MF:</label>
+                <select id="mfFilter">
+                    <option value="">All</option>
+                    <option value="SFTB">SFTB only</option>
+                    <option value="MF">MF only</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Sort row -->
+        <div class="sort-row">
+            <span class="sort-label">Sort by:</span>
+            <button class="active" data-sort="name">Name</button>
+            <button data-sort="joined">Joined (newest)</button>
+            <button data-sort="joined-old">Joined (oldest)</button>
+            <button data-sort="role">Role</button>
+        </div>
+
+        <!-- TABLE (desktop) -->
+        <div class="table-wrap" id="tableWrap">
+            <table class="directory-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Discord</th>
+                        <th>Role</th>
+                        <th>Combat</th>
+                        <th>Non-Combat</th>
+                        <th>Joined</th>
+                        <th>Age</th>
+                        <th>MF</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="membersBody">
+                    <!-- dynamic -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CARDS (mobile) -->
+        <div class="member-cards" id="memberCards">
+            <!-- dynamic -->
+        </div>
+
+        <!-- Loading state -->
+        <div id="loadingState" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading member directory…</p>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+
+    </main>
+
+    <!-- ===== SCRIPT ===== -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ---- Auth guard: checkLeadershipAuth (Leader or General) ----
+            if (typeof checkAdminAuth === 'function') {
+                // We'll use checkAdminAuth but with custom rank check
+                // Since we need Leader/General specifically, we'll do it manually
+                const session = getCurrentMember ? getCurrentMember() : null;
+                if (!session) {
+                    // Not logged in, redirect
+                    if (typeof checkAuth === 'function') {
+                        checkAuth(true);
+                    } else {
+                        window.location.href = '../login.html';
+                    }
+                    return;
+                }
+                const rank = (session.rank || '').toLowerCase();
+                if (!rank.includes('leader') && !rank.includes('general') && !rank.includes('starbound')) {
+                    // Not authorized
+                    if (typeof showToast === 'function') {
+                        showToast('You do not have permission to view this page.', 'error');
+                    }
+                    window.location.href = '../index.html';
+                    return;
+                }
+            } else {
+                console.warn('auth.js not loaded, skipping auth check');
+            }
+
+            // ---- DOM refs ----
+            const tbody = document.getElementById('membersBody');
+            const cardsContainer = document.getElementById('memberCards');
+            const loadingState = document.getElementById('loadingState');
+            const counter = document.getElementById('counter');
+            const pagination = document.getElementById('pagination');
+
+            const searchInput = document.getElementById('searchInput');
+            const roleFilter = document.getElementById('roleFilter');
+            const combatFilter = document.getElementById('combatFilter');
+            const nonCombatFilter = document.getElementById('nonCombatFilter');
+            const mfFilter = document.getElementById('mfFilter');
+
+            const sortBtns = document.querySelectorAll('[data-sort]');
+
+            // ---- State ----
+            let allMembers = [];
+            let filteredMembers = [];
+            let currentPage = 1;
+            const pageSize = 20;
+            let currentSort = 'name';
+            let sortAsc = true;
+
+            // ---- helpers ----
+            function formatDate(dateStr) {
+                if (!dateStr) return '—';
+                try {
+                    const d = new Date(dateStr);
+                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                } catch { return dateStr; }
+            }
+
+            function getAge(joinedDate) {
+                if (!joinedDate) return '—';
+                try {
+                    const joined = new Date(joinedDate);
+                    const now = new Date();
+                    const diff = Math.floor((now - joined) / (1000 * 60 * 60 * 24));
+                    if (diff < 1) return 'Today';
+                    if (diff === 1) return '1 day';
+                    if (diff < 30) return diff + ' days';
+                    if (diff < 365) return Math.floor(diff / 30) + ' months';
+                    return Math.floor(diff / 365) + ' years';
+                } catch { return '—'; }
+            }
+
+            function getRoleClass(role) {
+                if (!role) return 'member';
+                const r = role.toLowerCase();
+                if (r.includes('leader')) return 'leader';
+                if (r.includes('general')) return 'general';
+                if (r.includes('officer')) return 'officer';
+                return 'member';
+            }
+
+            function getMfBadge(val) {
+                if (val === true || val === 'true' || val === 'yes') {
+                    return '<span class="mf-badge yes">MF</span>';
+                }
+                return '<span class="mf-badge no">SFTB</span>';
+            }
+
+            // ---- Build dynamic filter options ----
+            function buildFilterOptions(members) {
+                // Combat skills
+                const combatSet = new Set();
+                members.forEach(m => {
+                    if (m.combatSkill) {
+                        combatSet.add(m.combatSkill.trim());
+                    }
+                });
+                const combatSelect = combatFilter;
+                const currentCombat = combatSelect.value;
+                combatSelect.innerHTML = '<option value="">All Combat Skills</option>';
+                [...combatSet].sort().forEach(skill => {
+                    const opt = document.createElement('option');
+                    opt.value = skill;
+                    opt.textContent = skill;
+                    combatSelect.appendChild(opt);
+                });
+                combatSelect.value = currentCombat;
+
+                // Non-combat skills (multi-select)
+                const ncSet = new Set();
+                members.forEach(m => {
+                    if (m.nonCombatSkill) {
+                        const skills = m.nonCombatSkill.split(',').map(s => s.trim()).filter(Boolean);
+                        skills.forEach(s => ncSet.add(s));
+                    }
+                });
+                const ncSelect = nonCombatFilter;
+                const currentNC = Array.from(ncSelect.selectedOptions).map(o => o.value).filter(Boolean);
+                ncSelect.innerHTML = '';
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.textContent = 'All Non-Combat';
+                ncSelect.appendChild(defaultOpt);
+                [...ncSet].sort().forEach(skill => {
+                    const opt = document.createElement('option');
+                    opt.value = skill;
+                    opt.textContent = skill;
+                    if (currentNC.includes(skill)) opt.selected = true;
+                    ncSelect.appendChild(opt);
+                });
+                // Make it multi-select
+                ncSelect.setAttribute('multiple', 'multiple');
+                ncSelect.style.minWidth = '140px';
+            }
+
+            // ---- Filter & sort ----
+            function filterMembers() {
+                const search = searchInput.value.toLowerCase().trim();
+                const role = roleFilter.value.toLowerCase().trim();
+                const combat = combatFilter.value.trim();
+                const mf = mfFilter.value;
+                const selectedNC = Array.from(nonCombatFilter.selectedOptions).map(o => o.value).filter(Boolean);
+
+                filteredMembers = allMembers.filter(m => {
+                    const name = (m.name || '').toLowerCase();
+                    const discord = (m.discord || '').toLowerCase();
+                    const matchesSearch = name.includes(search) || discord.includes(search);
+
+                    const matchesRole = role === '' || (m.role || '').toLowerCase().includes(role);
+
+                    const matchesCombat = combat === '' || (m.combatSkill || '').trim() === combat;
+
+                    // Non-combat: member has at least one selected skill
+                    let matchesNC = true;
+                    if (selectedNC.length > 0) {
+                        const memberSkills = (m.nonCombatSkill || '').split(',').map(s => s.trim()).filter(Boolean);
+                        matchesNC = selectedNC.some(skill => memberSkills.includes(skill));
+                    }
+
+                    let matchesMF = true;
+                    if (mf === 'SFTB') matchesMF = m.mf !== true && m.mf !== 'true' && m.mf !== 'yes';
+                    else if (mf === 'MF') matchesMF = m.mf === true || m.mf === 'true' || m.mf === 'yes';
+
+                    return matchesSearch && matchesRole && matchesCombat && matchesNC && matchesMF;
+                });
+
+                // Sort
+                filteredMembers.sort((a, b) => {
+                    let valA, valB;
+                    if (currentSort === 'name') {
+                        valA = (a.name || '').toLowerCase();
+                        valB = (b.name || '').toLowerCase();
+                    } else if (currentSort === 'role') {
+                        const order = { 'leader': 0, 'general': 1, 'officer': 2, 'member': 3 };
+                        valA = order[(a.role || '').toLowerCase()] ?? 9;
+                        valB = order[(b.role || '').toLowerCase()] ?? 9;
+                    } else if (currentSort === 'joined' || currentSort === 'joined-old') {
+                        valA = new Date(a.joined || a.joinedDate || a.createdAt || 0).getTime();
+                        valB = new Date(b.joined || b.joinedDate || b.createdAt || 0).getTime();
+                    } else {
+                        valA = (a.name || '').toLowerCase();
+                        valB = (b.name || '').toLowerCase();
+                    }
+                    if (currentSort === 'joined-old') {
+                        if (valA < valB) return -1;
+                        if (valA > valB) return 1;
+                        return 0;
+                    }
+                    if (valA < valB) return sortAsc ? -1 : 1;
+                    if (valA > valB) return sortAsc ? 1 : -1;
+                    return 0;
+                });
+
+                currentPage = 1;
+                updateDisplay();
+            }
+
+            // ---- Render ----
+            function updateDisplay() {
+                const total = filteredMembers.length;
+                const start = (currentPage - 1) * pageSize;
+                const end = Math.min(start + pageSize, total);
+                const pageMembers = filteredMembers.slice(start, end);
+
+                counter.textContent = `Showing ${total > 0 ? start + 1 : 0}–${end} of ${total} members`;
+
+                if (total === 0) {
+                    loadingState.innerHTML = `<div class="empty-state"><p>✨ No members match your filters.</p></div>`;
+                    loadingState.style.display = 'block';
+                    tbody.parentElement.style.display = 'none';
+                    cardsContainer.style.display = 'none';
+                    pagination.innerHTML = '';
+                    return;
+                }
+
+                loadingState.style.display = 'none';
+                tbody.parentElement.style.display = '';
+                cardsContainer.style.display = 'flex';
+
+                // Table rows
+                let tableHtml = '';
+                let cardsHtml = '';
+
+                pageMembers.forEach(m => {
+                    const name = m.name || 'Unknown';
+                    const discord = m.discord || '—';
+                    const role = m.role || 'Member';
+                    const roleClass = getRoleClass(role);
+                    const combatSkill = m.combatSkill || '—';
+                    const nonCombat = m.nonCombatSkill || '—';
+                    const joined = m.joined || m.joinedDate || m.createdAt || '';
+                    const age = getAge(joined);
+                    const mfVal = m.mf === true || m.mf === 'true' || m.mf === 'yes';
+                    const notes = m.notes || '';
+
+                    const displayJoined = formatDate(joined);
+
+                    // Table row
+                    tableHtml += `
+                        <tr data-notes="${notes.replace(/"/g, '&quot;')}">
+                            <td><strong>${name}</strong></td>
+                            <td>${discord}</td>
+                            <td><span class="role-badge ${roleClass}">${role}</span></td>
+                            <td>${combatSkill}</td>
+                            <td style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${nonCombat}</td>
+                            <td>${displayJoined}</td>
+                            <td>${age}</td>
+                            <td>${getMfBadge(mfVal)}</td>
+                            <td>${notes ? `<span class="note-trigger" title="${notes.replace(/"/g, '&quot;')}">📝</span>` : '—'}</td>
+                        </tr>
+                    `;
+
+                    // Card
+                    cardsHtml += `
+                        <div class="member-card" data-notes="${notes.replace(/"/g, '&quot;')}">
+                            <div class="card-row">
+                                <span class="name">${name}</span>
+                                <span class="role-badge ${roleClass}">${role}</span>
+                            </div>
+                            <div class="card-meta">
+                                <div><span class="label">Discord</span> ${discord}</div>
+                                <div><span class="label">Combat</span> ${combatSkill}</div>
+                                <div><span class="label">Non-Combat</span> ${nonCombat}</div>
+                                <div><span class="label">Joined</span> ${displayJoined}</div>
+                                <div><span class="label">Age</span> ${age}</div>
+                                <div><span class="label">MF</span> ${getMfBadge(mfVal)}</div>
+                            </div>
+                            ${notes ? `<button class="card-toggle" onclick="this.nextElementSibling.classList.toggle('visible')">📝 Show Notes</button><div class="card-notes">${notes}</div>` : ''}
+                        </div>
+                    `;
+                });
+
+                tbody.innerHTML = tableHtml;
+                cardsContainer.innerHTML = cardsHtml;
+
+                // Pagination
+                const totalPages = Math.ceil(total / pageSize);
+                let pagHtml = '';
+                pagHtml += `<button ${currentPage <= 1 ? 'disabled' : ''} onclick="goToPage(${currentPage - 1})">← Prev</button>`;
+                for (let i = 1; i <= totalPages; i++) {
+                    pagHtml += `<button class="${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+                }
+                pagHtml += `<button ${currentPage >= totalPages ? 'disabled' : ''} onclick="goToPage(${currentPage + 1})">Next →</button>`;
+                pagination.innerHTML = pagHtml;
+            }
+
+            // ---- Page navigation ----
+            window.goToPage = function(page) {
+                const totalPages = Math.ceil(filteredMembers.length / pageSize);
+                if (page < 1 || page > totalPages) return;
+                currentPage = page;
+                updateDisplay();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
+            // ---- Load data ----
+            async function loadDirectory() {
+                try {
+                    loadingState.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Loading member directory…</p></div>`;
+                    loadingState.style.display = 'block';
+                    tbody.parentElement.style.display = 'none';
+                    cardsContainer.style.display = 'none';
+
+                    if (typeof getMembers !== 'function') {
+                        throw new Error('getMembers() not available');
+                    }
+                    const res = await getMembers({ limit: 500 });
+                    if (res.success && res.members) {
+                        allMembers = res.members;
+                        buildFilterOptions(allMembers);
+                        filterMembers();
+                    } else {
+                        throw new Error(res.error || 'Failed to load members');
+                    }
+                } catch (err) {
+                    console.error('[Directory] Error:', err);
+                    loadingState.innerHTML = `
+                        <div class="error-state">
+                            <p style="font-size:1.1rem;">⚠️ Could not load directory</p>
+                            <p style="font-size:0.85rem; opacity:0.7;">${err.message}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // ---- Event listeners ----
+            searchInput.addEventListener('input', filterMembers);
+            roleFilter.addEventListener('change', filterMembers);
+            combatFilter.addEventListener('change', filterMembers);
+            nonCombatFilter.addEventListener('change', filterMembers);
+            mfFilter.addEventListener('change', filterMembers);
+
+            sortBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const sort = this.dataset.sort;
+                    if (currentSort === sort) {
+                        sortAsc = !sortAsc;
+                    } else {
+                        currentSort = sort;
+                        sortAsc = true;
+                    }
+                    sortBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    filterMembers();
+                });
+            });
+
+            // ---- Init ----
+            document.addEventListener('DOMContentLoaded', loadDirectory);
+
+        })();
+    </script>
+
+</body>
+</html>
