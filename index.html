@@ -286,7 +286,8 @@
     border-color:var(--green);
     box-shadow:0 0 0 1px var(--green), 0 0 16px rgba(82,214,122,.35);
   }
-  .skill-row label{font-size:13px;color:var(--text-muted);}
+  .skill-row label{font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:7px;}
+  .skill-icon{font-size:16px;line-height:1;}
   .skill-row.top label{color:var(--green);font-weight:600;}
   .skill-row input[type=number]{
     width:56px;
@@ -337,6 +338,19 @@
     direction:rtl;
     font-family:'Inter',sans-serif;
   }
+
+  /* ---------- mobile ---------- */
+  @media (max-width: 480px){
+    .moon{width:58vw;height:58vw;}
+    .moon-wrap{padding-top:44px;}
+    header{margin-top:-24px;}
+    main{padding:24px 12px 60px;}
+    section{padding:20px 16px;}
+    .skill-grid{grid-template-columns:1fr;}
+    .lang-toggle{top:10px;right:10px;}
+    .lang-toggle button{padding:5px 10px;font-size:11px;}
+    h1{font-size:26px;}
+  }
 </style>
 </head>
 <body>
@@ -384,7 +398,8 @@
           <option value="" data-i18n="opt_none">— none selected —</option>
           <option value="Spear (Stab)" data-i18n="opt_spear">Spear (Stab)</option>
           <option value="Sword (Slash)" data-i18n="opt_sword">Sword (Slash)</option>
-          <option value="Mace / Bulwark (Smash)" data-i18n="opt_mace">Mace / Bulwark (Smash)</option>
+          <option value="Mace (Smash)" data-i18n="opt_mace">Mace (Smash)</option>
+          <option value="Bulwark (Tank)" data-i18n="opt_bulwark">Bulwark (Tank)</option>
           <option value="Bow / Crossbow (Ranged)" data-i18n="opt_bow">Bow / Crossbow (Ranged)</option>
           <option value="Fire Staff (Magic)" data-i18n="opt_fire">Fire Staff (Magic)</option>
           <option value="Water Staff (Magic)" data-i18n="opt_water">Water Staff (Magic)</option>
@@ -412,7 +427,7 @@
   </form>
 </main>
 
-<footer>made by KingSomoza</footer>
+<footer>صمم عن طريق KingSomoza</footer>
 
 <script>
 /* ====================== CONFIG ====================== */
@@ -421,38 +436,42 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby2ISALiylcGSjNy98Bm
 
 /* ====================== DATA ====================== */
 const ABILITY_GROUPS = [
+  { key:"aura", en:"Aura", zh:"光环", items:[
+    "Critical Aura","Fierce Aura","Guardian Aura","Mystic Aura","Speed Aura",
+    "Aqua Aura","Flame Aura","Sylvan Aura"
+  ]},
   { key:"melee", en:"Melee", zh:"近战", items:[
     "Poke","Impale","Puncture","Penetrating Strike",
     "Scratch","Cleave","Maim","Crippling Slash",
-    "Smack","Sweep","Stunning Blow","Fracturing Impact",
-    "Berserk","Frenzy","Provoke"
+    "Smack","Sweep","Stunning Blow","Fracturing Impact","Shield Bash",
+    "Retribution","Provoke","Berserk","Frenzy"
   ]},
   { key:"ranged", en:"Ranged", zh:"远程", items:[
-    "Quick Shot","Penetrating Shot","Pestilent Shot","Precision","Elusiveness","Silencing Shot","Steady Shot"
+    "Quick Shot","Steady Shot","Silencing Shot","Penetrating Shot","Pestilent Shot",
+    "Precision","Elusiveness","Rain Of Arrows","Berserk","Frenzy"
   ]},
   { key:"magic", en:"Magic", zh:"魔法", items:[
     "Fireball","Flame Blast","Firestorm","Flame Arrow",
-    "Aqua Arrow","Ice Spear","Frost Surge",
-    "Entangle","Nature's Veil","Life Drain",
+    "Water Strike","Aqua Arrow","Ice Spear","Frost Surge",
+    "Entangle","Nature's Veil","Life Drain","Elemental Affinity",
     "Heal","Minor Heal","Mana Spring"
   ]},
-  { key:"special", en:"Auras & Special", zh:"光环与特殊技能", items:[
-    "Critical Aura","Fierce Aura","Guardian Aura","Mystic Aura","Speed Aura",
-    "Insanity","Invincible","Revive","Quick Aid","Promote"
+  { key:"special", en:"Special", zh:"特殊技能", items:[
+    "Insanity","Invincible","Revive","Quick Aid"
   ]}
 ];
 
 const NON_COMBAT_SKILLS = [
-  { key:"milking", en:"Milking", zh:"挤奶" },
-  { key:"foraging", en:"Foraging", zh:"采集" },
-  { key:"woodcutting", en:"Woodcutting", zh:"伐木" },
-  { key:"cheesesmithing", en:"Cheesesmithing", zh:"制奶酪" },
-  { key:"crafting", en:"Crafting", zh:"制作" },
-  { key:"tailoring", en:"Tailoring", zh:"裁缝" },
-  { key:"cooking", en:"Cooking", zh:"烹饪" },
-  { key:"brewing", en:"Brewing", zh:"酿造" },
-  { key:"alchemy", en:"Alchemy", zh:"炼金" },
-  { key:"enhancing", en:"Enhancing", zh:"强化" }
+  { key:"milking", en:"Milking", zh:"挤奶", icon:"🐄" },
+  { key:"foraging", en:"Foraging", zh:"采集", icon:"🌾" },
+  { key:"woodcutting", en:"Woodcutting", zh:"伐木", icon:"🪓" },
+  { key:"cheesesmithing", en:"Cheesesmithing", zh:"制奶酪", icon:"🧀" },
+  { key:"crafting", en:"Crafting", zh:"制作", icon:"🔨" },
+  { key:"tailoring", en:"Tailoring", zh:"裁缝", icon:"🧵" },
+  { key:"cooking", en:"Cooking", zh:"烹饪", icon:"🍳" },
+  { key:"brewing", en:"Brewing", zh:"酿造", icon:"🍺" },
+  { key:"alchemy", en:"Alchemy", zh:"炼金", icon:"⚗️" },
+  { key:"enhancing", en:"Enhancing", zh:"强化", icon:"✨" }
 ];
 
 /* ====================== i18n ====================== */
@@ -465,7 +484,7 @@ const I18N = {
     s2_label:"[ Combat Class ]", s2_hint:"Optional — your main weapon / style.",
     f_class:"Main combat class",
     opt_none:"— none selected —",
-    opt_spear:"Spear (Stab)", opt_sword:"Sword (Slash)", opt_mace:"Mace / Bulwark (Smash)",
+    opt_spear:"Spear (Stab)", opt_sword:"Sword (Slash)", opt_mace:"Mace (Smash)", opt_bulwark:"Bulwark (Tank)",
     opt_bow:"Bow / Crossbow (Ranged)", opt_fire:"Fire Staff (Magic)", opt_water:"Water Staff (Magic)", opt_nature:"Nature Staff (Magic)",
     s3_label:"[ Abilities & Auras ]", s3_hint:"Optional — check what you own and enter each level.",
     s4_label:"[ Non-Combat Skills ]", s4_hint:"Enter your level for each — your top 3 glow green.",
@@ -484,7 +503,7 @@ const I18N = {
     s2_label:"[ 战斗职业 ]", s2_hint:"可选 — 你的主要武器/流派。",
     f_class:"主战斗职业",
     opt_none:"— 未选择 —",
-    opt_spear:"长矛（刺击）", opt_sword:"剑（斩击）", opt_mace:"锤/盾（重击）",
+    opt_spear:"长矛（刺击）", opt_sword:"剑（斩击）", opt_mace:"锤（重击）", opt_bulwark:"盾卫（坦克）",
     opt_bow:"弓/弩（远程）", opt_fire:"火法杖（魔法）", opt_water:"水法杖（魔法）", opt_nature:"自然法杖（魔法）",
     s3_label:"[ 技能与光环 ]", s3_hint:"可选 — 勾选你拥有的技能并填写等级。",
     s4_label:"[ 非战斗技能 ]", s4_hint:"填写每项等级 — 最高的3项会以绿色高亮。",
@@ -562,7 +581,7 @@ function renderSkillGrid(){
     row.className = 'skill-row';
     row.dataset.key = skill.key;
     row.innerHTML = `
-      <label>${currentLang === 'en' ? skill.en : skill.zh}</label>
+      <label><span class="skill-icon">${skill.icon}</span>${currentLang === 'en' ? skill.en : skill.zh}</label>
       <input type="number" min="0" max="200" value="${prevValues[skill.key] || ''}" data-key="${skill.key}">
     `;
     row.querySelector('input').addEventListener('input', updateTopSkills);
