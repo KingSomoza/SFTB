@@ -1,0 +1,11 @@
+/*
+  Content-Type: text/html; charset=utf-8
+
+/*.html
+  Content-Type: text/html; charset=utf-8
+
+/admin/*
+  Content-Type: text/html; charset=utf-8
+
+/admin/*.html
+  Content-Type: text/html; charset=utf-8
