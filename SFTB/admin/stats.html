@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guild Statistics — SFTB Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <!-- Global styles & scripts -->
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <script src="../assets/js/main.js" defer></script>
+    <script src="../assets/js/api.js" defer></script>
+    <script src="../assets/js/auth.js" defer></script>
+    <style>
+        /* ===== ADMIN LAYOUT ===== */
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: var(--deep-sky);
+        }
+
+        .admin-sidebar {
+            width: 240px;
+            background: rgba(10, 6, 22, 0.75);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--card-border, rgba(243, 234, 216, 0.08));
+            padding: 24px 20px;
+            flex-shrink: 0;
+            min-height: 100vh;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+        .admin-sidebar .brand {
+            font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+            font-weight: 800;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--star, #f3ead8);
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--card-border, rgba(243, 234, 216, 0.06));
+        }
+        .admin-sidebar .brand .mark {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, var(--ember-bright), var(--ember) 60%, transparent);
+            box-shadow: 0 0 12px var(--ember);
+        }
+        .admin-sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .admin-sidebar nav a {
+            padding: 10px 14px;
+            border-radius: 8px;
+            color: var(--star-dim, #b9ae9a);
+            transition: 0.2s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .admin-sidebar nav a:hover {
+            background: rgba(224, 179, 85, 0.06);
+            color: var(--star, #f3ead8);
+        }
+        .admin-sidebar nav a.current {
+            background: rgba(224, 179, 85, 0.10);
+            color: var(--gold, #e0b355);
+            border-left: 3px solid var(--gold);
+        }
+        .admin-sidebar .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--card-border, rgba(243, 234, 216, 0.06));
+            font-size: 0.75rem;
+            color: var(--star-dimmer, #6a5f4e);
+        }
+        .admin-sidebar .sidebar-footer a {
+            color: var(--star-dim, #b9ae9a);
+            display: block;
+            padding: 6px 0;
+            font-size: 0.8rem;
+        }
+        .admin-sidebar .sidebar-footer a:hover {
+            color: var(--gold, #e0b355);
+        }
+
+        .admin-main {
+            flex: 1;
+            padding: 30px 40px 60px;
+            min-width: 0;
+        }
+
+        .admin-main .page-header {
+            margin-bottom: 28px;
+        }
+        .admin-main .page-header h1 {
+            font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .admin-main .page-header .sub {
+            color: var(--star-dim, #b9ae9a);
+            font-size: 0.9rem;
+        }
+
+        /* Stats cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .stat-card {
+            background: var(--card-bg, rgba(10, 6, 22, 0.55));
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--card-border, rgba(243, 234, 216, 0.06));
+            border-radius: 14px;
+            padding: 20px 22px;
+            text-align: center;
+        }
+        .stat-card .num {
+            font-family: var(--font-mono, 'JetBrains Mono', monospace);
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--gold, #e0b355);
+        }
+        .stat-card .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--star-dim, #b9ae9a);
+            margin-top: 4px;
+        }
+
+        /* Charts grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 8px;
+        }
+        .chart-box {
+            background: var(--card-bg, rgba(10, 6, 22, 0.45));
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--card-border, rgba(243, 234, 216, 0.06));
+            border-radius: 14px;
+            padding: 24px 20px 20px;
+        }
+        .chart-box h3 {
+            font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -0.01em;
+        }
+        .chart-box canvas {
+            width: 100% !important;
+            height: auto !important;
+            max-height: 280px;
+            aspect-ratio: 16/9;
+        }
+
+        .loading-state, .empty-state, .error-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--star-dim, #b9ae9a);
+        }
+        .loading-state .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 2px solid rgba(243, 234, 216, 0.10);
+            border-top-color: var(--gold, #e0b355);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-state p { margin-top: 12px; }
+
+        /* Responsive */
+        @media (max-width: 920px) {
+            .admin-sidebar {
+                width: 64px;
+                padding: 16px 10px;
+            }
+            .admin-sidebar .brand span:not(.mark) { display: none; }
+            .admin-sidebar .brand { justify-content: center; }
+            .admin-sidebar nav a span { display: none; }
+            .admin-sidebar nav a { justify-content: center; padding: 10px; }
+            .admin-sidebar .sidebar-footer { display: none; }
+            .admin-main { padding: 20px 16px; }
+        }
+
+        @media (max-width: 720px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .admin-main .page-header h1 { font-size: 1.4rem; }
+            .stat-card .num { font-size: 1.5rem; }
+        }
+
+        @media (max-width: 480px) {
+            .admin-sidebar { width: 52px; padding: 12px 6px; }
+            .admin-main { padding: 16px 12px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 14px; }
+            .stat-card .num { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="admin-sidebar">
+        <div class="brand">
+            <span class="mark"></span>
+            <span>SFTB</span>
+        </div>
+        <nav>
+            <a href="index.html">📊 Dashboard</a>
+            <a href="members.html">👥 Members</a>
+            <a href="stats.html" class="current">📈 Statistics</a>
+            <a href="applications.html">📋 Applications</a>
+            <a href="settings.html">⚙️ Settings</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="../index.html">← Back to site</a>
+            <a href="#" id="adminLogout">Logout</a>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="admin-main">
+
+        <!-- Page header -->
+        <div class="page-header">
+            <h1>Guild Statistics</h1>
+            <div class="sub">Real-time stats and trends for Start From The Bottom.</div>
+        </div>
+
+        <!-- Stats cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="num" id="statTotal">—</div><div class="label">Total Members</div></div>
+            <div class="stat-card"><div class="num" id="statCombined">—</div><div class="label">Combined Level</div></div>
+            <div class="stat-card"><div class="num" id="statAverage">—</div><div class="label">Average Level</div></div>
+            <div class="stat-card"><div class="num" id="statActive">—</div><div class="label">Active This Week</div></div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-box">
+                <h3>📊 Members by Rank</h3>
+                <canvas id="rankChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>📈 Member Growth Over Time</h3>
+                <canvas id="growthChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Loading state -->
+        <div id="loadingState" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading statistics…</p>
+        </div>
+
+    </main>
+
+    <!-- ===== PAGE SCRIPT ===== -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ---- Auth guard ----
+            if (typeof checkAdminAuth === 'function') {
+                const session = checkAdminAuth(true);
+                if (!session) return;
+            }
+
+            // ---- DOM refs ----
+            const statTotal = document.getElementById('statTotal');
+            const statCombined = document.getElementById('statCombined');
+            const statAverage = document.getElementById('statAverage');
+            const statActive = document.getElementById('statActive');
+            const loadingState = document.getElementById('loadingState');
+
+            const rankCanvas = document.getElementById('rankChart');
+            const growthCanvas = document.getElementById('growthChart');
+            let rankCtx, growthCtx;
+
+            if (rankCanvas) rankCtx = rankCanvas.getContext('2d');
+            if (growthCanvas) growthCtx = growthCanvas.getContext('2d');
+
+            const logoutBtn = document.getElementById('adminLogout');
+
+            // ---- Chart helpers ----
+            function drawBarChart(ctx, labels, data, colors, title) {
+                if (!ctx) return;
+                const rect = ctx.canvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                const w = rect.width || 300;
+                const h = rect.height || 200;
+                ctx.canvas.width = w * dpr;
+                ctx.canvas.height = h * dpr;
+                ctx.scale(dpr, dpr);
+
+                const pad = { top: 20, bottom: 30, left: 40, right: 20 };
+                const chartW = w - pad.left - pad.right;
+                const chartH = h - pad.top - pad.bottom;
+
+                ctx.clearRect(0, 0, w, h);
+
+                if (!data || data.length === 0) {
+                    ctx.fillStyle = 'rgba(243, 234, 216, 0.3)';
+                    ctx.font = '14px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('No data available', w/2, h/2);
+                    return;
+                }
+
+                const maxVal = Math.max(...data, 1);
+                const barWidth = Math.min(chartW / data.length * 0.7, 40);
+                const gap = chartW / data.length;
+
+                // Draw bars
+                data.forEach((val, i) => {
+                    const x = pad.left + i * gap + (gap - barWidth) / 2;
+                    const barH = (val / maxVal) * chartH;
+                    const y = pad.top + chartH - barH;
+
+                    ctx.fillStyle = colors[i % colors.length] || '#e0b355';
+                    ctx.fillRect(x, y, barWidth, barH);
+
+                    // Value on top
+                    ctx.fillStyle = 'rgba(243, 234, 216, 0.8)';
+                    ctx.font = '11px JetBrains Mono, monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(val, x + barWidth/2, y - 6);
+                });
+
+                // Labels
+                ctx.fillStyle = 'rgba(243, 234, 216, 0.5)';
+                ctx.font = '10px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                labels.forEach((label, i) => {
+                    const x = pad.left + i * gap + gap/2;
+                    ctx.fillText(label, x, h - 8);
+                });
+
+                // X axis line
+                ctx.strokeStyle = 'rgba(243, 234, 216, 0.15)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(pad.left, pad.top + chartH);
+                ctx.lineTo(w - pad.right, pad.top + chartH);
+                ctx.stroke();
+            }
+
+            function drawLineChart(ctx, labels, data, color, title) {
+                if (!ctx) return;
+                const rect = ctx.canvas.getBoundingClientRect();
+                const dpr = window.devicePixelRatio || 1;
+                const w = rect.width || 300;
+                const h = rect.height || 200;
+                ctx.canvas.width = w * dpr;
+                ctx.canvas.height = h * dpr;
+                ctx.scale(dpr, dpr);
+
+                const pad = { top: 20, bottom: 30, left: 40, right: 20 };
+                const chartW = w - pad.left - pad.right;
+                const chartH = h - pad.top - pad.bottom;
+
+                ctx.clearRect(0, 0, w, h);
+
+                if (!data || data.length < 2) {
+                    ctx.fillStyle = 'rgba(243, 234, 216, 0.3)';
+                    ctx.font = '14px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Insufficient data for trend', w/2, h/2);
+                    return;
+                }
+
+                const maxVal = Math.max(...data, 1);
+                const minVal = Math.min(...data, 0);
+                const range = maxVal - minVal || 1;
+                const points = data.map((val, i) => ({
+                    x: pad.left + (i / (data.length - 1)) * chartW,
+                    y: pad.top + chartH - ((val - minVal) / range) * chartH
+                }));
+
+                // Draw area fill
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, pad.top + chartH);
+                points.forEach(p => ctx.lineTo(p.x, p.y));
+                ctx.lineTo(points[points.length-1].x, pad.top + chartH);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(224, 179, 85, 0.10)';
+                ctx.fill();
+
+                // Draw line
+                ctx.beginPath();
+                ctx.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(points[i].x, points[i].y);
+                }
+                ctx.strokeStyle = color || '#e0b355';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+
+                // Draw points
+                points.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = color || '#e0b355';
+                    ctx.fill();
+                    ctx.strokeStyle = 'rgba(10, 6, 22, 0.5)';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                });
+
+                // Labels (x-axis)
+                ctx.fillStyle = 'rgba(243, 234, 216, 0.5)';
+                ctx.font = '9px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                const step = Math.max(1, Math.floor(labels.length / 10));
+                labels.forEach((label, i) => {
+                    if (i % step === 0 || i === labels.length - 1) {
+                        const x = pad.left + (i / (labels.length - 1)) * chartW;
+                        ctx.fillText(label, x, h - 8);
+                    }
+                });
+
+                // Y axis line
+                ctx.strokeStyle = 'rgba(243, 234, 216, 0.15)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(pad.left, pad.top);
+                ctx.lineTo(pad.left, pad.top + chartH);
+                ctx.stroke();
+            }
+
+            // ---- Load data ----
+            async function loadStats() {
+                try {
+                    loadingState.style.display = 'block';
+
+                    if (typeof getMemberStats !== 'function') {
+                        throw new Error('getMemberStats() not available');
+                    }
+
+                    const statsRes = await getMemberStats();
+                    if (statsRes.success && statsRes.stats) {
+                        const s = statsRes.stats;
+                        statTotal.textContent = s.totalMembers || s.members || '—';
+                        statCombined.textContent = s.combinedLevel || s.totalLevel || '—';
+                        statAverage.textContent = s.avgLevel || s.averageLevel || '—';
+                        statActive.textContent = s.activeThisWeek || s.active || '—';
+                    } else {
+                        console.warn('Stats not available:', statsRes.error);
+                    }
+
+                    // Fetch members for rank distribution
+                    if (typeof getMembers === 'function') {
+                        const membersRes = await getMembers({ limit: 500 });
+                        if (membersRes.success && membersRes.members) {
+                            const members = membersRes.members;
+
+                            // Rank distribution
+                            const rankOrder = ['Recruit', 'Digger', 'Miner', 'Prospector', 'Voyager', 'Starbound'];
+                            const rankCounts = rankOrder.map(r => {
+                                return members.filter(m => (m.rank || '').toLowerCase() === r.toLowerCase()).length;
+                            });
+                            const colors = ['#8a9ba8', '#6a9fb5', '#4aafb0', '#d4a373', '#b5838d', '#e0b355'];
+                            drawBarChart(rankCtx, rankOrder, rankCounts, colors, 'Members by Rank');
+
+                            // Growth over time (simulate from joined dates)
+                            const joinedDates = members
+                                .map(m => m.joined || m.joinedDate || m.createdAt)
+                                .filter(d => d)
+                                .map(d => new Date(d))
+                                .filter(d => !isNaN(d.getTime()))
+                                .sort((a, b) => a - b);
+
+                            if (joinedDates.length > 1) {
+                                // Group by month
+                                const monthMap = new Map();
+                                joinedDates.forEach(d => {
+                                    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                                    monthMap.set(key, (monthMap.get(key) || 0) + 1);
+                                });
+                                const sortedKeys = Array.from(monthMap.keys()).sort();
+                                const growthLabels = sortedKeys.map(k => {
+                                    const [y, m] = k.split('-');
+                                    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                                    return `${monthNames[parseInt(m)-1]} ${y}`;
+                                });
+                                // Cumulative sum
+                                let cumulative = 0;
+                                const growthData = sortedKeys.map(k => {
+                                    cumulative += monthMap.get(k) || 0;
+                                    return cumulative;
+                                });
+                                drawLineChart(growthCtx, growthLabels, growthData, '#e0b355', 'Member Growth');
+                            } else {
+                                drawLineChart(growthCtx, ['No Data'], [], '#e0b355', 'Member Growth');
+                            }
+                        } else {
+                            throw new Error(membersRes.error || 'Failed to load members');
+                        }
+                    }
+
+                    loadingState.style.display = 'none';
+
+                } catch (err) {
+                    console.error('[Stats] Error:', err);
+                    loadingState.innerHTML = `
+                        <div class="error-state">
+                            <p style="font-size:1.1rem;">⚠️ Could not load statistics</p>
+                            <p style="font-size:0.85rem; opacity:0.7;">${err.message || 'Please try again later.'}</p>
+                        </div>
+                    `;
+                }
+            }
+
+            // ---- Handle resize for charts ----
+            let resizeTimer;
+            function handleResize() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    // Re-draw charts with current data (we need to re-fetch or store last data)
+                    // Simple: reload stats
+                    if (typeof loadStats === 'function') {
+                        loadStats();
+                    }
+                }, 300);
+            }
+
+            // ---- Logout ----
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    if (typeof logout === 'function') {
+                        await logout(true);
+                    } else {
+                        window.location.href = '../index.html';
+                    }
+                });
+            }
+
+            // ---- Init ----
+            document.addEventListener('DOMContentLoaded', function() {
+                loadStats();
+                window.addEventListener('resize', handleResize);
+            });
+
+        })();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Start From The Bottom — SFTB Guild</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --deep-sky: #0c0820;
+      --sky-dark: #19103a;
+      --sky-mid: #2a1d5a;
+      --sky-bright: #4a3a8a;
+      --moon-glow: #ffeac2;
+      --moon-shadow: #d8c8a0;
+      --ember: #d9682e;
+      --ember-bright: #ff9452;
+      --gold: #e0b355;
+      --star: #f3ead8;
+      --star-dim: #b9ae9a;
+      --card-bg: rgba(10, 6, 22, 0.65);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--deep-sky);
+      color: var(--star);
+      overflow-x: hidden;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    h1, h2, h3, .display {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* ---------- DEEP SKY + MOON ---------- */
+    #universe {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background: radial-gradient(ellipse at 70% 10%, #2a1d5a 0%, #19103a 40%, #0c0820 80%);
+    }
+
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    /* MOON — large, prominent, top-right area */
+    .moon {
+      position: fixed;
+      top: 6vh;
+      right: 7vw;
+      width: clamp(140px, 22vw, 260px);
+      height: clamp(140px, 22vw, 260px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #fff6e5 0%, #f5e5c8 45%, #d8c8a0 80%, #b8a882 100%);
+      box-shadow: 0 0 60px 20px rgba(255, 234, 194, 0.25), 0 0 120px 50px rgba(255, 234, 194, 0.08);
+      z-index: 0;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0.95;
+    }
+
+    /* subtle crater texture via pseudo */
+    .moon::after {
+      content: '';
+      position: absolute;
+      inset: 5%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 25% 30%, rgba(180, 150, 110, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 60%, rgba(140, 110, 70, 0.1) 0%, transparent 40%),
+                  radial-gradient(circle at 45% 75%, rgba(120, 90, 60, 0.08) 0%, transparent 30%);
+      pointer-events: none;
+    }
+
+    @media (max-width: 768px) {
+      .moon {
+        top: 4vh;
+        right: 4vw;
+        width: clamp(100px, 28vw, 160px);
+        height: clamp(100px, 28vw, 160px);
+        box-shadow: 0 0 40px 15px rgba(255, 234, 194, 0.2);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .moon {
+        top: 3vh;
+        right: 3vw;
+        width: 80px;
+        height: 80px;
+        box-shadow: 0 0 30px 10px rgba(255, 234, 194, 0.15);
+      }
+    }
+
+    /* ---------- HEADER ---------- */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 6vw;
+      background: rgba(12, 8, 32, 0.65);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(224, 179, 85, 0.12);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: 0.02em;
+    }
+    .brand .mark {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, var(--ember-bright), var(--ember) 60%, transparent);
+      box-shadow: 0 0 12px var(--ember);
+    }
+
+    nav ul {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+      align-items: center;
+    }
+    nav a {
+      font-size: 0.85rem;
+      color: var(--star-dim);
+      transition: color 0.2s;
+      font-weight: 500;
+    }
+    nav a:hover, nav a.current {
+      color: var(--gold);
+    }
+    nav a.current {
+      border-bottom: 1px solid var(--gold);
+      padding-bottom: 4px;
+    }
+
+    .nav-cta {
+      font-size: 0.8rem;
+      padding: 9px 18px;
+      border: 1px solid var(--ember);
+      border-radius: 999px;
+      color: var(--ember-bright);
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    .nav-cta:hover {
+      background: var(--ember);
+      color: var(--deep-sky);
+    }
+
+    @media (max-width: 640px) {
+      nav ul { gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+      nav a { font-size: 0.75rem; }
+      .nav-cta { padding: 6px 14px; font-size: 0.7rem; }
+    }
+
+    /* ---------- SECTIONS ---------- */
+    section {
+      position: relative;
+      padding: 100px 6vw;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ---------- HERO ---------- */
+    #hero {
+      min-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 40px;
+    }
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--ember-bright);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    #hero h1 {
+      font-size: clamp(2.8rem, 8vw, 5.6rem);
+      line-height: 1;
+      max-width: 14ch;
+    }
+    #hero h1 span {
+      color: var(--gold);
+    }
+    #hero p.lede {
+      margin-top: 20px;
+      font-size: 1.15rem;
+      color: var(--star-dim);
+      max-width: 52ch;
+      line-height: 1.6;
+    }
+    .cta-row {
+      display: flex;
+      gap: 16px;
+      margin-top: 36px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 14px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: inline-block;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--ember-bright), var(--ember));
+      color: var(--deep-sky);
+      border: none;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(217, 104, 46, 0.35);
+    }
+    .btn-ghost {
+      border: 1px solid rgba(243, 234, 216, 0.25);
+      color: var(--star);
+      background: transparent;
+    }
+    .btn-ghost:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .scroll-hint {
+      margin-top: 60px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--star-dim);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .scroll-hint .line {
+      width: 30px;
+      height: 1px;
+      background: var(--star-dim);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+    /* ---------- COMMON ---------- */
+    .kicker {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--ember-bright);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    h2.headline {
+      font-size: clamp(1.9rem, 4vw, 2.9rem);
+      max-width: 20ch;
+      margin-bottom: 16px;
+    }
+    .section-body {
+      color: var(--star-dim);
+      max-width: 62ch;
+      line-height: 1.7;
+      font-size: 1.02rem;
+    }
+
+    /* ---------- MANIFESTO ---------- */
+    #manifesto {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 50px;
+      align-items: start;
+    }
+    @media (max-width: 800px) {
+      #manifesto { grid-template-columns: 1fr; gap: 30px; }
+    }
+    .manifesto-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .manifesto-line {
+      padding-left: 20px;
+      border-left: 2px solid rgba(224, 179, 85, 0.3);
+    }
+    .manifesto-line b {
+      display: block;
+      color: var(--star);
+      font-size: 1.05rem;
+      margin-bottom: 4px;
+    }
+    .manifesto-line span {
+      color: var(--star-dim);
+      font-size: 0.92rem;
+    }
+
+    /* ---------- RANKS ---------- */
+    .ladder {
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+    }
+    .rank {
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      align-items: center;
+      gap: 20px;
+      padding: 22px 0;
+      border-top: 1px solid rgba(243, 234, 216, 0.08);
+    }
+    .rank:last-child {
+      border-bottom: 1px solid rgba(243, 234, 216, 0.08);
+    }
+    .rank-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: rgba(243, 234, 216, 0.25);
+    }
+    .rank-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-family: 'Bricolage Grotesque', sans-serif;
+    }
+    .rank-desc {
+      color: var(--star-dim);
+      font-size: 0.88rem;
+      margin-top: 2px;
+    }
+    .rank-req {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--gold);
+      text-align: right;
+      white-space: nowrap;
+    }
+    @media (max-width: 640px) {
+      .rank { grid-template-columns: 40px 1fr; }
+      .rank-req { grid-column: 2; text-align: left; margin-top: 4px; }
+    }
+
+    /* ---------- STATS ---------- */
+    #stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 1px;
+      background: rgba(243, 234, 216, 0.08);
+      border: 1px solid rgba(243, 234, 216, 0.08);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-top: 36px;
+    }
+    .stat {
+      background: var(--card-bg);
+      padding: 28px 20px;
+      backdrop-filter: blur(4px);
+    }
+    .stat .num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--gold);
+    }
+    .stat .label {
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: var(--star-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    @media (max-width: 800px) {
+      #stats-grid { grid-template-columns: 1fr 1fr; }
+    }
+    .stats-note {
+      margin-top: 14px;
+      font-size: 0.75rem;
+      color: var(--star-dim);
+      font-family: 'JetBrains Mono', monospace;
+      opacity: 0.7;
+    }
+
+    /* ---------- JOIN STEPS ---------- */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 40px;
+    }
+    .step {
+      display: flex;
+      gap: 24px;
+      padding: 24px 0;
+      border-top: 1px solid rgba(243, 234, 216, 0.08);
+    }
+    .step:last-child {
+      border-bottom: 1px solid rgba(243, 234, 216, 0.08);
+    }
+    .step-mark {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--ember-bright);
+      font-size: 0.85rem;
+      padding-top: 2px;
+    }
+    .step h3 {
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+    }
+    .step p {
+      color: var(--star-dim);
+      font-size: 0.92rem;
+      max-width: 50ch;
+      line-height: 1.6;
+    }
+
+    /* ---------- FOOTER ---------- */
+    footer {
+      padding: 60px 6vw 40px;
+      border-top: 1px solid rgba(243, 234, 216, 0.08);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 40px;
+    }
+    .footer-brand p {
+      color: var(--star-dim);
+      font-size: 0.85rem;
+      margin-top: 10px;
+      max-width: 34ch;
+      line-height: 1.6;
+    }
+    .footer-links {
+      display: flex;
+      gap: 50px;
+      flex-wrap: wrap;
+    }
+    .footer-col h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--star-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+    .footer-col a {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--star);
+      margin-bottom: 8px;
+      opacity: 0.8;
+      transition: 0.2s;
+    }
+    .footer-col a:hover {
+      color: var(--gold);
+      opacity: 1;
+    }
+    .foot-bottom {
+      max-width: 1200px;
+      margin: 30px auto 0;
+      padding: 0 6vw 30px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--star-dim);
+      opacity: 0.6;
+      text-align: center;
+    }
+
+    ::selection {
+      background: var(--ember);
+      color: var(--deep-sky);
+    }
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- DEEP SPACE BACKGROUND -->
+  <div id="universe"></div>
+  <canvas id="stars-canvas"></canvas>
+
+  <!-- MOON (fixed, prominent) -->
+  <div class="moon" aria-hidden="true"></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="brand"><span class="mark"></span> START FROM THE BOTTOM</div>
+    <nav>
+      <ul>
+        <li><a href="#hero" class="current">Home</a></li>
+        <li><a href="/roster.html">Roster & Stats</a></li>
+        <li><a href="/apply.html">Apply</a></li>
+        <li><a class="nav-cta" href="/login.html">Login</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section id="hero">
+      <div class="eyebrow">Milky Way Idle · Guild #SFTB</div>
+      <h1>We didn't start<br>at the top. <span>We're climbing<br>to it.</span></h1>
+      <p class="lede">Start From The Bottom is a Milky Way Idle guild built for players who grind honestly, help each other level up, and actually show up. No dead weight, no gatekeeping — just steady progress, together.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="/apply.html">Apply to join</a>
+        <a class="btn btn-ghost" href="/roster.html">View the roster</a>
+      </div>
+      <div class="scroll-hint"><span class="line"></span> SCROLL — THE CLIMB STARTS HERE</div>
+    </section>
+
+    <!-- MANIFESTO -->
+    <section id="manifesto">
+      <div>
+        <div class="kicker">Why SFTB exists</div>
+        <h2 class="headline">Idle games reward patience. Guilds should reward loyalty.</h2>
+        <p class="section-body">Most guilds are a leaderboard with a name attached. We built this one around the opposite idea: rank should reflect who actually helped the guild move forward, not who happened to start playing first.</p>
+      </div>
+      <div class="manifesto-lines">
+        <div class="manifesto-line">
+          <b>Everyone starts at the bottom</b>
+          <span>No inherited ranks, no favorites. Every member climbs the same ladder.</span>
+        </div>
+        <div class="manifesto-line">
+          <b>Activity over hype</b>
+          <span>We track contribution and consistency, not who talks the loudest in chat.</span>
+        </div>
+        <div class="manifesto-line">
+          <b>Built to last</b>
+          <span>This site, the roster, the stats — all of it exists so the guild outlives any one season.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RANKS -->
+    <section id="climb">
+      <div class="kicker">Guild ranks</div>
+      <h2 class="headline">The climb</h2>
+      <p class="section-body">Six tiers, from first login to guild leadership. Each one is earned, not given — track your own progress on your member page.</p>
+      <div class="ladder">
+        <div class="rank"><div class="rank-num">01</div><div><div class="rank-name">Recruit</div><div class="rank-desc">Just joined. Getting oriented.</div></div><div class="rank-req">Day 1</div></div>
+        <div class="rank"><div class="rank-num">02</div><div><div class="rank-name">Digger</div><div class="rank-desc">Active, showing up consistently.</div></div><div class="rank-req">2 weeks active</div></div>
+        <div class="rank"><div class="rank-num">03</div><div><div class="rank-name">Miner</div><div class="rank-desc">Reliable contributor, known in the guild.</div></div><div class="rank-req">Consistent contribution</div></div>
+        <div class="rank"><div class="rank-num">04</div><div><div class="rank-name">Prospector</div><div class="rank-desc">Helps newer members, trusted judgment.</div></div><div class="rank-req">Mentors recruits</div></div>
+        <div class="rank"><div class="rank-num">05</div><div><div class="rank-name">Voyager</div><div class="rank-desc">Core member, shapes guild decisions.</div></div><div class="rank-req">Officer-nominated</div></div>
+        <div class="rank"><div class="rank-num">06</div><div><div class="rank-name">Starbound</div><div class="rank-desc">Guild leadership.</div></div><div class="rank-req">Leadership</div></div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section id="stats-section">
+      <div class="kicker">Right now</div>
+      <h2 class="headline">The guild in numbers</h2>
+      <div id="stats-grid">
+        <div class="stat"><div class="num">—</div><div class="label">Members</div></div>
+        <div class="stat"><div class="num">—</div><div class="label">Combined level</div></div>
+        <div class="stat"><div class="num">—</div><div class="label">Active this week</div></div>
+        <div class="stat"><div class="num">—</div><div class="label">Founded</div></div>
+      </div>
+      <div class="stats-note">// live figures load from the guild sheet once roster.html is connected</div>
+    </section>
+
+    <!-- JOIN -->
+    <section id="join">
+      <div class="kicker">How it works</div>
+      <h2 class="headline">Joining takes three steps</h2>
+      <div class="steps">
+        <div class="step"><div class="step-mark">01</div><div><h3>Submit your application</h3><p>Tell us your in-game name and current level. Takes under a minute.</p></div></div>
+        <div class="step"><div class="step-mark">02</div><div><h3>An officer reviews it</h3><p>We check activity and fit — not just level. Usually a same-day response.</p></div></div>
+        <div class="step"><div class="step-mark">03</div><div><h3>You're in as a Recruit</h3><p>Get your login for the member portal and start climbing the ranks.</p></div></div>
+      </div>
+      <div class="cta-row" style="margin-top:30px;">
+        <a class="btn btn-primary" href="/apply.html">Start your application</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-brand">
+      <div class="brand"><span class="mark"></span> START FROM THE BOTTOM</div>
+      <p>A Milky Way Idle guild. Everyone starts at the bottom — where you end up is up to you.</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <h4>Guild</h4>
+        <a href="#hero">Home</a>
+        <a href="/roster.html">Roster & stats</a>
+        <a href="#climb">Ranks</a>
+      </div>
+      <div class="footer-col">
+        <h4>Members</h4>
+        <a href="/login.html">Login</a>
+        <a href="/apply.html">Apply</a>
+        <a href="/admin.html">Officer panel</a>
+      </div>
+    </div>
+  </footer>
+  <div class="foot-bottom">SFTB · Start From The Bottom — Milky Way Idle guild</div>
+
+  <script>
+    (function() {
+      const canvas = document.getElementById('stars-canvas');
+      const ctx = canvas.getContext('2d');
+      let stars = [];
+      let w, h;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = document.documentElement.scrollHeight;
+        buildStars();
+      }
+
+      function buildStars() {
+        stars = [];
+        const count = Math.floor((w * h) / 10000);
+        for (let i = 0; i < count; i++) {
+          // density higher near top (sky), lower near bottom (earth)
+          const y = Math.random() * h;
+          const depthFactor = 1 - (y / h);
+          if (Math.random() > depthFactor * 0.8 + 0.15) continue;
+          stars.push({
+            x: Math.random() * w,
+            y: y,
+            r: Math.random() * 1.4 + 0.3,
+            o: Math.random() * 0.5 + 0.4,
+            tw: Math.random() * 0.025 + 0.005,
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      function draw(t) {
+        ctx.clearRect(0, 0, w, h);
+        for (const s of stars) {
+          const flicker = Math.sin(t * s.tw + s.phase) * 0.25 + 0.75;
+          ctx.globalAlpha = s.o * flicker;
+          ctx.fillStyle = '#f3ead8';
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        if (!reduceMotion) requestAnimationFrame(draw);
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+      if (!reduceMotion) {
+        requestAnimationFrame(draw);
+      } else {
+        // just draw once
+        draw(0);
+      }
+    })();
+  </script>
+</body>
+</html>
